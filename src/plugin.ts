@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { UnifiedTokenService } from './services/UnifiedTokenService';
 import { MCPOrchestratorService } from './services/MCPOrchestratorService';
 import { TwitterSafetyService } from './services/TwitterSafetyService';
+import { HealthMonitoringService } from './services/HealthMonitoringService';
 import { tokenQueryAction } from './actions/tokenQueryAction';
 
 // Enhanced response context detection for sophisticated agent behavior
@@ -758,6 +759,81 @@ const plugin: Plugin = {
         });
       },
     },
+    {
+      name: 'health',
+      path: '/health',
+      type: 'GET',
+      handler: async (req: any, res: any) => {
+        try {
+          const runtime = req.runtime || req.agent?.runtime;
+          if (!runtime) {
+            return res.status(500).json({ error: 'Runtime not available' });
+          }
+
+          const healthService = runtime.getService('health-monitoring') as HealthMonitoringService;
+          if (!healthService) {
+            return res.json({
+              status: 'unknown',
+              message: 'Health monitoring service not enabled',
+              timestamp: new Date().toISOString(),
+            });
+          }
+
+          const health = healthService.getHealthStatus();
+          const metrics = healthService.getPerformanceMetrics();
+
+          res.json({
+            status: health.status,
+            checks: health.checks,
+            metrics,
+            timestamp: new Date().toISOString(),
+            agent: 'Anubis',
+            version: '2.0.0',
+          });
+        } catch (error) {
+          logger.error('Health check endpoint error:', error);
+          res.status(500).json({
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString(),
+          });
+        }
+      },
+    },
+    {
+      name: 'metrics',
+      path: '/metrics',
+      type: 'GET',
+      handler: async (req: any, res: any) => {
+        try {
+          const runtime = req.runtime || req.agent?.runtime;
+          if (!runtime) {
+            return res.status(500).json({ error: 'Runtime not available' });
+          }
+
+          const healthService = runtime.getService('health-monitoring') as HealthMonitoringService;
+          if (!healthService) {
+            return res.json({
+              message: 'Health monitoring service not enabled',
+              metrics: {},
+            });
+          }
+
+          const metrics = healthService.getPerformanceMetrics();
+          
+          res.json({
+            agent: 'Anubis',
+            metrics,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          logger.error('Metrics endpoint error:', error);
+          res.status(500).json({
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      },
+    },
   ],
   events: {
     MESSAGE_RECEIVED: [
@@ -789,7 +865,13 @@ const plugin: Plugin = {
       },
     ],
   },
-  services: [StarterService, UnifiedTokenService, MCPOrchestratorService],
+  services: [
+    StarterService, 
+    UnifiedTokenService, 
+    MCPOrchestratorService, 
+    TwitterSafetyService,
+    ...(process.env.ENABLE_HEALTH_CHECKS === 'true' ? [HealthMonitoringService] : [])
+  ],
   actions: [helloWorldAction, portfolioAction, swapAction, viralPostAction, tokenQueryAction],
   providers: [helloWorldProvider],
 };

@@ -30,10 +30,15 @@ export const character: Character = {
     // MCP plugin for enhanced external integrations
     '@fleek-platform/eliza-plugin-mcp',
     
-    // AI model plugins (multi-model support)
+    // AI model plugins (multi-model support with fallback)
     ...(process.env.OPENAI_API_KEY?.trim() ? ['@elizaos/plugin-openai'] : []),
     ...(process.env.ANTHROPIC_API_KEY?.trim() ? ['@elizaos/plugin-anthropic'] : []),
     ...(process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ? ['@elizaos/plugin-google-genai'] : []),
+    
+    // Enhanced capabilities plugins
+    '@elizaos/plugin-web-search',
+    '@elizaos/plugin-solana',
+    '@elizaos/plugin-evm',
     
     // Platform plugins (optional)
     ...(process.env.DISCORD_API_TOKEN?.trim() ? ['@elizaos/plugin-discord'] : []),
@@ -43,101 +48,200 @@ export const character: Character = {
         process.env.TWITTER_EMAIL?.trim() 
         ? ['@elizaos/plugin-twitter'] : []),
     
-    // Custom Anubis plugins from SYMLABS
+    // Custom Anubis plugins from SYMLABS (load last for overrides)
     ...(process.env.ENABLE_ANUBIS_DEFI !== 'false' ? ['@symlabs/plugin-defi'] : []),
     ...(process.env.ENABLE_ANUBIS_VIRAL === 'true' ? ['@symlabs/plugin-viral'] : []),
     ...(process.env.ENABLE_ANUBIS_BLINKS !== 'false' ? ['@symlabs/plugin-blinks'] : []),
   ],
   
   settings: {
-    secrets: {},
+    secrets: {
+      // Character-specific secrets for enhanced security
+      ANUBIS_CHARACTER_SECRET: process.env.CHARACTER_SECRET_KEY,
+      ANUBIS_WALLET_PRIVATE_KEY: process.env.SOLANA_PRIVATE_KEY,
+      ANUBIS_HELIUS_API_KEY: process.env.HELIUS_API_KEY,
+      ANUBIS_JUPITER_API_KEY: process.env.JUPITER_API_KEY,
+      
+      // EVM chain secrets (when enabled)
+      ...(process.env.ENABLE_EVM_PLUGIN === 'true' && {
+        EVM_PRIVATE_KEY: process.env.EVM_PRIVATE_KEY,
+        EVM_RPC_URL: process.env.EVM_RPC_URL,
+      }),
+      
+      // Web search API keys
+      ...(process.env.TAVILY_API_KEY && {
+        TAVILY_API_KEY: process.env.TAVILY_API_KEY,
+      }),
+    },
     avatar: 'https://www.anubis.chat/_next/image?url=%2Fassets%2FlogoNoText.png&w=64&q=75',
     voice: 'en-US-Neural2-D', // Deep, authoritative voice
-    model: process.env.MODEL_PROVIDER === 'anthropic' ? 'claude-3-opus' : 'gpt-4',
+    
+    // 2025 Model Configuration with intelligent fallbacks
+    model: process.env.MODEL_PROVIDER === 'anthropic' 
+      ? 'claude-3-5-sonnet-20241022'  // Latest Claude 3.5 Sonnet
+      : process.env.MODEL_PROVIDER === 'openai' 
+        ? 'gpt-4o'  // Latest GPT-4o 
+        : 'gpt-4o-mini',  // Fast fallback
+        
     embeddingModel: 'text-embedding-3-large',
     
-    // MCP Server Configuration for enhanced DeFi capabilities (Free Tier)
+    // Performance optimizations
+    streamingEnabled: true,
+    maxTokens: 4096,
+    temperature: 0.7,
+    maxMemories: 1000,
+    memoryDecay: 0.95,
+    
+    // Response quality settings
+    responseQuality: 'high',
+    contextWindow: 8192,
+    adaptivePersonality: true,
+    
+    // Enhanced MCP Server Configuration for 2025 capabilities
     mcp: {
       servers: {
-        // CoinGecko for real-time crypto market data (free tier)
-        coinGecko: {
-          type: 'stdio',
-          name: 'CoinGecko Market Data',
-          command: 'npx',
-          args: ['-y', '@coingecko/mcp-server']
-        },
-        // Crypto Fear & Greed Index for market sentiment
-        fearGreed: {
-          type: 'stdio',
-          name: 'Crypto Fear & Greed Index',
-          command: 'npx',
-          args: ['-y', '@crypto-feargreed/mcp-server']
-        },
-        // EVM blockchain data (free tier)
-        evmData: {
-          type: 'stdio',
-          name: 'EVM Blockchain Data',
-          command: 'npx',
-          args: ['-y', '@evm/mcp-server']
-        },
-        // DexPaprika for DEX data (free tier)
-        dexData: {
-          type: 'stdio',
-          name: 'DexPaprika DEX Data',
-          command: 'npx',
-          args: ['-y', '@dexpaprika/mcp-server']
-        },
-        // Dialect for blockchain infrastructure and blinks
-        dialect: {
-          type: 'sse',
-          name: 'Dialect Blockchain Infrastructure',
-          url: 'https://docs.dialect.to/mcp'
-        },
-        // Tavily web search with API key from environment
-        tavily: {
-          type: 'stdio',
-          name: 'Tavily Web Search',
-          command: 'npx',
-          args: ['-y', '@modelcontextprotocol/server-web-search'],
-          env: {
-            TAVILY_API_KEY: process.env.TAVILY_API_KEY
+        // Priority Tier 1: Core Market Data (Always Active)
+        ...(process.env.ENABLE_MCP !== 'false' && {
+          // CoinGecko for real-time crypto market data (free tier)
+          coinGecko: {
+            type: 'stdio',
+            name: 'CoinGecko Market Data',
+            command: 'npx',
+            args: ['-y', '@coingecko/mcp-server'],
+            timeout: 10000,
+            retries: 3
+          },
+          
+          // Tavily web search with API key from environment
+          tavily: {
+            type: 'stdio',
+            name: 'Tavily Web Search',
+            command: 'npx',
+            args: ['-y', '@modelcontextprotocol/server-web-search'],
+            env: {
+              TAVILY_API_KEY: process.env.TAVILY_API_KEY
+            },
+            timeout: 15000,
+            retries: 2
+          },
+        }),
+
+        // Priority Tier 2: Blockchain Infrastructure (Core Operations)
+        ...(process.env.ENABLE_MCP !== 'false' && {
+          // GOAT On-Chain Agent MCP - 200+ on-chain actions
+          goat: {
+            type: 'stdio',
+            name: 'GOAT On-Chain Agent',
+            command: 'npx',
+            args: ['-y', '@goat-sdk/adapter-mcp'],
+            timeout: 20000,
+            retries: 2
+          },
+          
+          // Solana MCP (SendAI) - 40+ Solana-specific actions
+          solana: {
+            type: 'stdio',
+            name: 'Solana Agent Kit',
+            command: 'npx',
+            args: ['-y', 'solana-agent-kit-mcp'],
+            timeout: 15000,
+            retries: 3
+          },
+        }),
+
+        // Priority Tier 3: Analytics & Sentiment (Optional but valuable)
+        ...(process.env.ENABLE_MCP !== 'false' && {
+          // Crypto Fear & Greed Index for market sentiment
+          fearGreed: {
+            type: 'stdio',
+            name: 'Crypto Fear & Greed Index',
+            command: 'npx',
+            args: ['-y', '@crypto-feargreed/mcp-server'],
+            timeout: 8000,
+            retries: 1
+          },
+          
+          // EVM blockchain data (free tier)
+          evmData: {
+            type: 'stdio',
+            name: 'EVM Blockchain Data',
+            command: 'npx',
+            args: ['-y', '@evm/mcp-server'],
+            timeout: 12000,
+            retries: 2
+          },
+        }),
+
+        // Priority Tier 4: Extended Features (Load conditionally)
+        ...(process.env.ENABLE_EXTENDED_MCP === 'true' && {
+          // DexPaprika for DEX data (free tier)
+          dexData: {
+            type: 'stdio',
+            name: 'DexPaprika DEX Data',
+            command: 'npx',
+            args: ['-y', '@dexpaprika/mcp-server'],
+            timeout: 10000,
+            retries: 1
+          },
+          
+          // Dialect for blockchain infrastructure and blinks
+          dialect: {
+            type: 'sse',
+            name: 'Dialect Blockchain Infrastructure',
+            url: 'https://docs.dialect.to/mcp',
+            timeout: 10000
+          },
+          
+          // Lightning Network MCP for Bitcoin payments
+          lightning: {
+            type: 'stdio',
+            name: 'Lightning Network',
+            command: 'npx',
+            args: ['-y', '@lightning/mcp-server'],
+            timeout: 12000,
+            retries: 1
+          },
+          
+          // Etherscan MCP for Ethereum data
+          etherscan: {
+            type: 'stdio',
+            name: 'Etherscan Explorer',
+            command: 'npx',
+            args: ['-y', '@etherscan/mcp-server'],
+            timeout: 15000,
+            retries: 2
+          },
+          
+          // Heurist Mesh for on-chain analytics
+          heurist: {
+            type: 'stdio',
+            name: 'Heurist On-Chain Analytics',
+            command: 'npx',
+            args: ['-y', '@heurist/mesh-mcp-server'],
+            timeout: 10000,
+            retries: 1
           }
-        },
-        // GOAT On-Chain Agent MCP - 200+ on-chain actions
-        goat: {
-          type: 'stdio',
-          name: 'GOAT On-Chain Agent',
-          command: 'npx',
-          args: ['-y', '@goat-sdk/adapter-mcp']
-        },
-        // Solana MCP (SendAI) - 40+ Solana-specific actions
-        solana: {
-          type: 'stdio',
-          name: 'Solana Agent Kit',
-          command: 'npx',
-          args: ['-y', 'solana-agent-kit-mcp']
-        },
-        // Lightning Network MCP for Bitcoin payments
-        lightning: {
-          type: 'stdio',
-          name: 'Lightning Network',
-          command: 'npx',
-          args: ['-y', '@lightning/mcp-server']
-        },
-        // Etherscan MCP for Ethereum data
-        etherscan: {
-          type: 'stdio',
-          name: 'Etherscan Explorer',
-          command: 'npx',
-          args: ['-y', '@etherscan/mcp-server']
-        },
-        // Heurist Mesh for on-chain analytics
-        heurist: {
-          type: 'stdio',
-          name: 'Heurist On-Chain Analytics',
-          command: 'npx',
-          args: ['-y', '@heurist/mesh-mcp-server']
-        }
+        })
+      },
+      
+      // Global MCP Configuration
+      config: {
+        // Connection pooling and performance
+        maxConcurrentConnections: parseInt(process.env.MCP_MAX_CONNECTIONS || '5'),
+        connectionTimeout: parseInt(process.env.MCP_TIMEOUT || '15000'),
+        retryDelay: parseInt(process.env.MCP_RETRY_DELAY || '2000'),
+        
+        // Health monitoring
+        healthCheckInterval: parseInt(process.env.MCP_HEALTH_CHECK_INTERVAL || '60000'),
+        failureThreshold: parseInt(process.env.MCP_FAILURE_THRESHOLD || '3'),
+        
+        // Caching for performance
+        enableCaching: process.env.MCP_ENABLE_CACHING !== 'false',
+        cacheTTL: parseInt(process.env.MCP_CACHE_TTL || '300000'), // 5 minutes
+        
+        // Fallback behavior
+        enableFallbacks: true,
+        gracefulDegradation: true
       }
     },
   },
