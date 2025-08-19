@@ -6,9 +6,10 @@
     "sourceMap": true,
     "inlineSources": true,
     "declaration": true,
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src/index.ts", "src/plugin.ts", "src/frontend/**/*.ts", "src/frontend/**/*.tsx"],
+  "include": ["src/index.ts", "src/plugin.ts", "src/character.ts", "src/services/**/*.ts", "src/actions/**/*.ts", "src/frontend/**/*.ts", "src/frontend/**/*.tsx"],
   "exclude": [
     "node_modules",
     "dist",
