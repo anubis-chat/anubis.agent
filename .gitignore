@@ -1,6 +1,8 @@
 # Build outputs
 dist/
 node_modules/
+*.log
+agent_startup.log
 
 # Environment files
 .env
@@ -10,6 +12,11 @@ node_modules/
 .env.development
 .env.bak
 *.env
+
+# Symlabs plugins local builds
+symlabs-plugins-fixed/*/node_modules/
+symlabs-plugins-fixed/*/dist/
+symlabs-plugins-fixed/*/*.lock
 
 # OS files
 .DS_Store
