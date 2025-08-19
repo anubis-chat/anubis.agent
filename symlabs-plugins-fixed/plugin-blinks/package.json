@@ -1,0 +1,49 @@
+{
+  "name": "@symlabs/plugin-blinks",
+  "version": "1.0.1",
+  "description": "Solana Blinks plugin for ElizaOS - Fixed balance reporting with real SOL balance queries",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepublishOnly": "echo 'Publishing pre-compiled package with balance fixes'"
+  },
+  "keywords": [
+    "elizaos",
+    "plugin",
+    "blinks",
+    "dialect",
+    "solana",
+    "blockchain",
+    "shareable",
+    "symlabs",
+    "actions"
+  ],
+  "author": "SYMLABS AI Development Lab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/symlabs/anubis-agent"
+  },
+  "homepage": "https://symlabs.ai",
+  "dependencies": {
+    "@elizaos/core": "latest",
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0",
+    "zod": "3.24.2"
+  },
+  "peerDependencies": {
+    "@elizaos/core": "*"
+  },
+  "devDependencies": {
+    "tsup": "8.5.0",
+    "typescript": "^5.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

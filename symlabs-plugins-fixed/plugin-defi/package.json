@@ -1,0 +1,54 @@
+{
+  "name": "@symlabs/plugin-defi",
+  "version": "1.0.1",
+  "description": "DeFi operations plugin for ElizaOS - Fixed Jupiter API integration, Solana swaps, MEV protection",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepublishOnly": "echo 'Publishing pre-compiled package with Jupiter API fixes'"
+  },
+  "keywords": [
+    "elizaos",
+    "plugin",
+    "defi",
+    "solana",
+    "jupiter",
+    "helius",
+    "mev",
+    "symlabs",
+    "crypto",
+    "trading",
+    "swap"
+  ],
+  "author": "SYMLABS AI Development Lab",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/symlabs/anubis-agent"
+  },
+  "homepage": "https://symlabs.ai",
+  "dependencies": {
+    "@elizaos/core": "latest",
+    "@solana/web3.js": "^1.98.4",
+    "@solana/spl-token": "^0.4.0",
+    "solana-agent-kit": "^2.0.9",
+    "bs58": "^6.0.0",
+    "decimal.js": "^10.6.0",
+    "zod": "3.24.2"
+  },
+  "peerDependencies": {
+    "@elizaos/core": "*"
+  },
+  "devDependencies": {
+    "tsup": "8.5.0",
+    "typescript": "^5.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
